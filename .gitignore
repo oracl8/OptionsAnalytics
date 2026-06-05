@@ -1,0 +1,27 @@
+# virtual environment
+.venv/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# data cache (keep the directory, not the contents)
+volforecast/data/cache/*
+!volforecast/data/cache/.gitkeep
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb~
+
+# secrets
+.env
+
+# build artifacts
+dist/
+*.egg-info/
+.eggs/
+
+# editor
+.vscode/
+.idea/
