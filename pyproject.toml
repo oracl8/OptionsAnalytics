@@ -16,6 +16,7 @@ dependencies = [
     "matplotlib",
     "yfinance",
     "arch",
+    "pyarrow",
 ]
 
 [project.optional-dependencies]
