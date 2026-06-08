@@ -200,5 +200,3 @@ improve generalization.
 evaluation.
 
 ---
-
-*For research and educational purposes only. Not investment advice.*
