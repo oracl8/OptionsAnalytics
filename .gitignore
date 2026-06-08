@@ -13,9 +13,14 @@ volforecast/data/cache/*
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb~
+*_executed.ipynb
 
 # secrets
 .env
+
+# generated plot images
+*.png
+*.pdf
 
 # build artifacts
 dist/
