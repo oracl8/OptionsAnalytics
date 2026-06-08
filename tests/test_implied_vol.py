@@ -150,3 +150,20 @@ def test_mixed_valid_invalid():
     ivs = implied_vol(prices_mixed, S0, K, T0, r0, q0, "call")
     assert abs(ivs[0] - sig_in[0]) < 1e-6
     assert np.isnan(ivs[1])
+
+
+# ---------------------------------------------------------------------------
+# IV monotone in price — the fundamental property the solver relies on
+# ---------------------------------------------------------------------------
+
+
+def test_iv_monotone_in_price():
+    # For fixed (S, K, T, r, q), a higher market price implies a higher IV.
+    # We generate prices from an increasing vol grid and verify the solver
+    # recovers a strictly increasing IV sequence.
+    sigs = np.array([0.10, 0.15, 0.20, 0.25, 0.30, 0.40])
+    prices = np.asarray(bsm_price(S0, K0, T0, r0, sigs, q0, "call"), dtype=float)
+    assert np.all(np.diff(prices) > 0), "prices must be strictly increasing in sigma"
+    ivs = implied_vol(prices, S0, K0, T0, r0, q0, "call")
+    assert not np.any(np.isnan(ivs)), "all valid prices should solve"
+    assert np.all(np.diff(ivs) > 0), "recovered IVs must be strictly increasing in price"

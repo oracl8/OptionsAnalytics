@@ -90,25 +90,20 @@ def build_features(
     ann = np.sqrt(trading_days)
     feats: dict[str, pd.Series] = {}
 
-    # --- lagged realized vols ---
     for w in [5, 10, 21, 63]:
         feats[f"rv_{w}"] = log_ret.rolling(w).std() * ann
 
-    # --- return signals ---
-    feats["ret_1"] = log_ret  # current-day log return (no shift — known at close)
+    feats["ret_1"] = log_ret
     for w in [5, 21]:
         feats[f"ret_{w}_cum"] = log_ret.rolling(w).sum()
 
-    # --- range-based estimators ---
     for w in [5, 21]:
         feats[f"park_{w}"] = _rolling_parkinson(high, low, w, trading_days)
         feats[f"gk_{w}"] = _rolling_garman_klass(open_, high, low, close, w, trading_days)
 
-    # --- volume signals ---
     for w in [5, 21]:
         feats[f"vol_ratio_{w}"] = volume / volume.rolling(w).mean()
 
-    # --- optional: lagged implied vol ---
     if iv_series is not None:
         # shift(1): IV at day i uses IV from day i-1 (available at open on day i)
         feats["iv_lag1"] = iv_series.shift(1)

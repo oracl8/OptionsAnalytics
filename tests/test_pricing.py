@@ -113,3 +113,36 @@ def test_vectorized_strikes():
     assert prices.shape == (50,)
     # Higher strike → lower call price (all else equal)
     assert np.all(np.diff(prices) < 0)
+
+
+# ---------------------------------------------------------------------------
+# Sign / bound checks
+# ---------------------------------------------------------------------------
+
+
+def test_theta_negative():
+    # Time decay is always a cost for long options (q=0, r>0 → no deep-ITM edge cases)
+    assert float(theta(S0, K0, T0, r0, sig0, q0, "call")) < 0
+    assert float(theta(S0, K0, T0, r0, sig0, q0, "put")) < 0
+
+
+def test_rho_signs():
+    # Higher risk-free rate makes calls more valuable (carry), puts less valuable
+    assert float(rho(S0, K0, T0, r0, sig0, q0, "call")) > 0
+    assert float(rho(S0, K0, T0, r0, sig0, q0, "put")) < 0
+
+
+def test_delta_bounds():
+    d_call = float(delta(S0, K0, T0, r0, sig0, q0, "call"))
+    d_put = float(delta(S0, K0, T0, r0, sig0, q0, "put"))
+    assert 0 < d_call < 1
+    assert -1 < d_put < 0
+
+
+def test_price_monotone_in_vol():
+    # vega > 0 everywhere → bsm_price strictly increasing in sigma
+    sigmas = np.linspace(0.05, 0.80, 20)
+    call_prices = np.array([float(bsm_price(S0, K0, T0, r0, s, q0, "call")) for s in sigmas])
+    put_prices  = np.array([float(bsm_price(S0, K0, T0, r0, s, q0, "put"))  for s in sigmas])
+    assert np.all(np.diff(call_prices) > 0)
+    assert np.all(np.diff(put_prices)  > 0)
