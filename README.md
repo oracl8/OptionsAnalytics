@@ -116,48 +116,45 @@ MC price = 10.4634 ± 0.0331 vs. BS = 10.4506 (0.4 std-errors, seed=42, 200k pat
 
 ### Realized volatility and baselines
 
-The forecasting target is the annualized standard deviation of log-returns over a forward
-horizon h (e.g., 5 trading days):
+The forecasting target is the annualized std of log-returns over a forward horizon h:
 
 ```
 RV_t = sqrt(252) · std(log(S_{t+1}/S_t), ..., log(S_{t+h}/S_{t+h-1}))
 ```
 
-This is strictly forward-looking: RV_t uses only prices after time t.
+RV_t uses only prices strictly after time t.
 
-Two baselines are evaluated:
+Two baselines:
 
 **EWMA:** sigma_t^2 = lambda·sigma_{t-1}^2 + (1-lambda)·r_t^2, lambda=0.94 (RiskMetrics).
-Causal — uses only returns up to and including day t.
+Uses only returns up to day t.
 
 **GARCH(1,1):** sigma_t^2 = omega + alpha·r_{t-1}^2 + beta·sigma_{t-1}^2. Parameters fit
 by maximum likelihood on training data inside each fold.
 
 Range-based estimators (Parkinson, Garman-Klass) use daily high/low data for more efficient
-historical vol estimation — they enter the ML feature set.
+vol estimation and are included in the ML feature set.
 
 ### Walk-forward cross-validation
 
-Standard k-fold CV shuffles time — training on the future, testing on the past — which is
-invalid for time series. This project uses expanding-window walk-forward CV:
+Standard k-fold CV trains on future data and tests on the past, which is invalid for time
+series. This project uses expanding-window walk-forward CV:
 
-- Training always starts at day 0 and grows by `step` days each fold.
-- Test sets are contiguous, non-overlapping, and always strictly after the training set.
-- **Purging:** for a horizon-h target, the h-1 training samples immediately before the
-  test fold have targets that overlap with the test period. These are removed from
-  training to prevent label leakage through correlated targets.
-- All transformations (model fitting, scalers) are done exclusively on training data
-  inside each fold. No scaler or imputation is ever fit on the full dataset.
+- Training starts at day 0 and grows by `step` days each fold. Test sets are contiguous
+  and always strictly after the training set.
+- **Purging:** for a horizon-h target, the h-1 samples just before the test fold have
+  targets that overlap with the test period and are dropped from training.
+- All fitting (model, scalers) happens on training data only, inside each fold.
 
-The ML model (histogram-gradient-boosting, `HistGradientBoostingRegressor`) is
-scale-invariant and handles NaN features natively, so no StandardScaler is applied.
+The ML model (`HistGradientBoostingRegressor`) is tree-based and handles NaN features
+natively. No scaler is needed.
 
 ---
 
 ## Results
 
-Walk-forward CV on SPY (2019-01-01 to 2024-12-31), horizon = 5 trading days,
-minimum training set = 252 days, fold step = 21 days, N = 1252 test observations.
+Walk-forward CV on SPY, 2019-2024. Horizon = 5 trading days, min training = 252 days,
+fold step = 21 days, N = 1252 test observations.
 
 | Model | RMSE   | MAE    | QLIKE   | Corr  |
 |-------|--------|--------|---------|-------|
@@ -165,42 +162,33 @@ minimum training set = 252 days, fold step = 21 days, N = 1252 test observations
 | GARCH | 0.1367 | 0.0834 | -2.3345 | 0.387 |
 | ML    | 0.1456 | 0.0841 | -1.4186 | 0.314 |
 
-**EWMA is the strongest baseline on all metrics.** The gradient-boosting ML model does not
-beat EWMA or GARCH(1,1) on this dataset. This is an honest, expected result: short-horizon
-realized vol is dominated by volatility clustering that simple EWMA captures cheaply, and
-the ML model faces a difficult regime-generalization problem with only five years of daily
-data. The result is more credible than an implausible ML outperformance claim.
+EWMA outperforms both GARCH and the ML model on every metric. Short-horizon vol is heavily
+autocorrelated, and EWMA captures that with a single parameter.
 
-QLIKE (Patton 2011) penalizes forecast miscalibration — a higher (less negative) QLIKE
-means the model's vol predictions are systematically too high or too low relative to realized
-variance. ML's weaker QLIKE score suggests it overpredicts vol in calm regimes or
-underpredicts it during stress.
+QLIKE (Patton 2011) measures calibration: a higher (less negative) value means predictions
+are systematically off relative to realized variance. The ML model's QLIKE gap is larger
+than its RMSE gap, pointing to miscalibration beyond pure point error.
 
 ---
 
 ## Limitations & next steps
 
-**Data quality:** market data from yfinance (free tier) may contain gaps, stale quotes,
-and survivorship bias. Results are not audited against a paid data source.
+**Data:** yfinance may have gaps, stale quotes, and survivorship bias. Not audited against
+a paid source.
 
-**No transaction costs:** the implied-vs-forecast signal is not adjusted for bid-ask
-spreads, market impact, or financing costs. A real trading strategy would face substantial
-friction relative to these raw vol spreads.
+**Transaction costs:** no bid-ask spread, market impact, or financing costs are modeled.
 
-**Black-Scholes assumptions:** constant volatility and lognormal returns. Real markets
-exhibit vol clustering, jumps, and skew — BSM is used here as a benchmark and analytical
-tool, not a realistic pricing model.
+**Black-Scholes:** assumes constant vol and lognormal returns. BSM is a benchmark here,
+not a realistic pricing model.
 
-**Constant dividend yield:** the BSM implementation accepts a continuous dividend yield
-but does not model discrete dividends or early exercise (American options).
+**Dividends:** continuous yield only. No discrete dividends or early exercise.
 
-**ML generalization:** the gradient-boosting model uses only price-derived features.
-Incorporating macro indicators, options flow data, or a richer feature set could improve
-out-of-sample performance.
+**ML features:** only price-derived inputs. Macro indicators or implied vol signals could
+improve generalization.
 
-**Next steps:** stochastic-vol models (Heston), longer-horizon forecasting, transaction-
-cost-adjusted signal evaluation, and GPU-accelerated Monte Carlo.
+**Next steps:** stochastic vol (Heston), longer horizons, transaction-cost-adjusted signal
+evaluation.
 
 ---
 
-*For research and educational purposes only — not investment advice.*
+*For research and educational purposes only. Not investment advice.*
