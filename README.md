@@ -7,6 +7,16 @@ time-series cross-validation.
 
 ---
 
+## Demo
+
+![SPY implied volatility smile](screenshots/surface_smile.png)
+*Implied volatility vs. strike for SPY options across near-term expirations, showing the characteristic put skew.*
+
+![Implied vs. forecast richness](screenshots/richness.png)
+*Options flagged rich (IV above forecast realized vol) or cheap, based on the walk-forward vol forecast vs. current implied vol.*
+
+---
+
 ## Setup
 
 ```bash
