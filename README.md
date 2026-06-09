@@ -1,6 +1,6 @@
 # Volatility Forecasting & Options Analytics
 
-A Python library for pricing options, computing risk sensitivities (Greeks), Monte Carlo
+A Python library for pricing options, computing risk sensitivities, Monte Carlo
 simulation with variance reduction, implied-volatility solving, a real-data volatility
 surface, and an ML model that forecasts realized volatility under rigorous, lookahead-free
 time-series cross-validation.
