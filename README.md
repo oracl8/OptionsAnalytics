@@ -13,7 +13,7 @@ time-series cross-validation.
 *Implied volatility vs. strike for SPY options across near-term expirations, showing the characteristic put skew.*
 
 ![Implied vs. forecast richness](screenshots/richness.png)
-*Options flagged rich (IV above forecast realized vol) or cheap, based on the walk-forward vol forecast vs. current implied vol.*
+*Options are flagged as overpriced or underpriced by comparing current implied vol to the walk-forward forecast of realized vol.*
 
 ---
 
@@ -36,7 +36,7 @@ Run tests:
 pytest
 ```
 
-Reproduce headline results (uses cached SPY data, no network required):
+Reproduce headline results using cached SPY data, so no network is needed:
 
 ```bash
 python scripts/reproduce_results.py
@@ -97,8 +97,9 @@ All closed-form Greeks are verified against central finite differences in the te
 
 BSM price is strictly increasing in sigma (vega > 0 everywhere), so there is a unique
 implied vol for any valid market price. The solver uses Newton-Raphson with vega as the
-derivative, falling back to bisection when vega is near zero (deep ITM/OTM options where
-the NR step is numerically unreliable). The implementation is vectorized over an entire
+derivative, falling back to bisection when vega is near zero, which happens for deep in-
+or out-of-the-money options where Newton-Raphson is unreliable. The implementation is
+vectorized over an entire
 option chain.
 
 ### Monte Carlo pricing
@@ -142,7 +143,7 @@ Uses only returns up to day t.
 **GARCH(1,1):** sigma_t^2 = omega + alpha·r_{t-1}^2 + beta·sigma_{t-1}^2. Parameters fit
 by maximum likelihood on training data inside each fold.
 
-Range-based estimators (Parkinson, Garman-Klass) use daily high/low data for more efficient
+Range-based estimators like Parkinson and Garman-Klass use daily high/low data for more efficient
 vol estimation and are included in the ML feature set.
 
 ### Walk-forward cross-validation
@@ -154,10 +155,10 @@ series. This project uses expanding-window walk-forward CV:
   and always strictly after the training set.
 - **Purging:** for a horizon-h target, the h-1 samples just before the test fold have
   targets that overlap with the test period and are dropped from training.
-- All fitting (model, scalers) happens on training data only, inside each fold.
+- All model and scaler fitting happens on training data only, inside each fold.
 
-The ML model (`HistGradientBoostingRegressor`) is tree-based and handles NaN features
-natively. No scaler is needed.
+The ML model is `HistGradientBoostingRegressor`, a gradient-boosted tree that handles NaN
+features natively. No scaler is needed.
 
 ---
 
@@ -175,9 +176,9 @@ fold step = 21 days, N = 1252 test observations.
 EWMA outperforms both GARCH and the ML model on every metric. Short-horizon vol is heavily
 autocorrelated, and EWMA captures that with a single parameter.
 
-QLIKE (Patton 2011) measures calibration: a higher (less negative) value means predictions
-are systematically off relative to realized variance. The ML model's QLIKE gap is larger
-than its RMSE gap, pointing to miscalibration beyond pure point error.
+QLIKE measures calibration: a less negative value means predictions are systematically off
+relative to realized variance. The ML model's QLIKE gap is larger than its RMSE gap,
+pointing to miscalibration beyond pure point error.
 
 ---
 
@@ -196,7 +197,7 @@ not a realistic pricing model.
 **ML features:** only price-derived inputs. Macro indicators or implied vol signals could
 improve generalization.
 
-**Next steps:** stochastic vol (Heston), longer horizons, transaction-cost-adjusted signal
+**Next steps:** stochastic vol such as Heston, longer horizons, transaction-cost-adjusted signal
 evaluation.
 
 ---
