@@ -65,7 +65,7 @@ tests/
 
 ### Black-Scholes-Merton pricing
 
-Under the risk-neutral GBM assumption (constant volatility, no jumps), the closed-form
+Under the risk-neutral GBM assumption of constant volatility and no jumps, the closed-form
 European option price is:
 
 ```
@@ -137,7 +137,7 @@ RV_t uses only prices strictly after time t.
 
 Two baselines:
 
-**EWMA:** sigma_t^2 = lambda·sigma_{t-1}^2 + (1-lambda)·r_t^2, lambda=0.94 (RiskMetrics).
+**EWMA:** sigma_t^2 = lambda·sigma_{t-1}^2 + (1-lambda)·r_t^2, lambda=0.94, the RiskMetrics value.
 Uses only returns up to day t.
 
 **GARCH(1,1):** sigma_t^2 = omega + alpha·r_{t-1}^2 + beta·sigma_{t-1}^2. Parameters fit
