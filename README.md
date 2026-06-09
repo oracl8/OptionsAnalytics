@@ -2,7 +2,7 @@
 
 A Python library for pricing options, computing risk sensitivities, Monte Carlo
 simulation with variance reduction, implied-volatility solving, a real-data volatility
-surface, and an ML model that forecasts realized volatility under rigorous, lookahead-free
+surface, and an ML model that forecasts realized volatility under lookahead-free
 time-series cross-validation.
 
 ---
