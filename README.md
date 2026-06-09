@@ -175,9 +175,8 @@ fold step = 21 days, N = 1252 test observations.
 EWMA outperforms both GARCH and the ML model on every metric. Short horizon vol is heavily
 autocorrelated, and EWMA captures that with a single parameter.
 
-QLIKE measures calibration: a less negative value means predictions are systematically off
-relative to realized variance. The ML model's QLIKE gap is larger than its RMSE gap,
-pointing to miscalibration beyond pure point error.
+The ML model does worse on QLIKE than on RMSE, which suggests its errors are systematic rather
+than random.
 
 ---
 
