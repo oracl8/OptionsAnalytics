@@ -172,11 +172,13 @@ fold step = 21 days, N = 1252 test observations.
 | GARCH | 0.1367 | 0.0834 | -2.3345 | 0.387 |
 | ML    | 0.1456 | 0.0841 | -1.4186 | 0.314 |
 
-EWMA outperforms both GARCH and the ML model on every metric. Short horizon vol is heavily
-autocorrelated, and EWMA captures that with a single parameter.
+EWMA outperforms both GARCH and the ML model on every metric. Short horizon volatility is heavily autocorrelated, so most of the predictable signal is just recent volatility, which EWMA captures with one parameter and nothing to overfit.
 
-The ML model does worse on QLIKE than on RMSE, which suggests its errors are systematic rather
-than random.
+GARCH lands in the middle. It models volatility clustering directly but has to estimate parameters each fold, which adds noise without much payoff at this horizon.
+
+The ML model trails despite using the most features. With only price-based inputs and a few hundred training samples per fold, it has many ways to fit noise and little signal to find. Its QLIKE gap is larger than its RMSE gap, which suggests its errors are systematic rather than random.
+
+The takeaway: at a 5 day horizon on a single stock, simple beats complex. The ML model would likely do better at longer horizons, across many assets, or with data beyond price history.
 
 ---
 
