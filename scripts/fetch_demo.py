@@ -1,5 +1,5 @@
 """
-Milestone 4 verification: fetch live SPY data and print shapes/sample rows.
+Fetch live SPY data and print shapes/sample rows.
 Results are cached in volforecast/data/cache/ — subsequent runs are instant.
 
 Run from project root:
